@@ -1,0 +1,31 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/reporting_db
+    username: postgres
+    password: postgres
+    pool:
+      initial-size: 5
+      max-size: 10
+  
+  flyway:
+    url: jdbc:postgresql://localhost:5432/reporting_db
+    user: postgres
+    password: postgres
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  
+  # DevTools configuration for hot reload
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO
+    com.example.reportingservice: DEBUG
