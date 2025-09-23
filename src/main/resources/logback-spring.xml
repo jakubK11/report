@@ -2,23 +2,17 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     
-    <springProfile name="!docker">
-        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
-    </springProfile>
+    <!-- Single console appender with traceId for demo -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
     
-    <springProfile name="docker">
-        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder>
-                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-            </encoder>
-        </appender>
-    </springProfile>
-    
+    <!-- Application-specific logging levels -->
     <logger name="com.example.reportingservice" level="DEBUG"/>
-    <logger name="org.springframework.r2dbc" level="DEBUG"/>
-    <logger name="io.r2dbc.postgresql.QUERY" level="DEBUG"/>
     
     <root level="INFO">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>

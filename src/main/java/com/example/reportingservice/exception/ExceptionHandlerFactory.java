@@ -12,6 +12,7 @@ public class ExceptionHandlerFactory {
 
     @ExceptionHandler(InvalidDateRangeException.class)
     public ResponseEntity<String> handleInvalidDateRangeException(InvalidDateRangeException ex) {
+        log.info("Invalid date range provided: {}", ex.getMessage());
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 
