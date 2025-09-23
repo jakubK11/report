@@ -2,6 +2,7 @@ package com.example.reportingservice.controller;
 
 import com.example.reportingservice.dto.EmployeeReport;
 import com.example.reportingservice.dto.ProjectReport;
+import com.example.reportingservice.exception.InvalidDateRangeException;
 import com.example.reportingservice.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public class ReportController {
             LocalDate endDate) {
         
         log.info("Streaming employees report with startDate: {}, endDate: {}", startDate, endDate);
-        
+        validateDates(startDate, endDate);
         return reportService.streamEmployeesReport(startDate, endDate);
     }
     
@@ -49,7 +50,13 @@ public class ReportController {
             LocalDate endDate) {
         
         log.info("Streaming projects report with startDate: {}, endDate: {}", startDate, endDate);
-        
+        validateDates(startDate, endDate);
         return reportService.streamProjectsReport(startDate, endDate);
+    }
+
+    private void validateDates(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
+            throw new InvalidDateRangeException("End date cannot be before start date.");
+        }
     }
 }

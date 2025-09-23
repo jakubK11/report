@@ -18,6 +18,7 @@ import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -215,5 +216,27 @@ class ReportControllerIT {
                 .expectNextCount(2) // Still returns employees but with empty hours
                 .expectComplete()
                 .verify(Duration.ofSeconds(10));
+    }
+
+    @Test
+    void whenDateRangeIsInvalid_shouldReturnBadRequest() {
+        // Given an invalid date range
+        LocalDate startDate = LocalDate.of(2024, 2, 2);
+        LocalDate endDate = LocalDate.of(2024, 2, 1);
+
+        // When: Call the endpoint with the invalid range
+        webTestClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/report/employees")
+                        .queryParam("startDate", startDate)
+                        .queryParam("endDate", endDate)
+                        .build())
+                .accept(MediaType.APPLICATION_NDJSON)
+                .exchange()
+                // Then: Expect a 400 Bad Request response
+                .expectStatus().isBadRequest()
+                .expectBody(String.class)
+                .isEqualTo("End date cannot be before start date.");
     }
 }

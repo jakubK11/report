@@ -8,7 +8,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler {
+public class ExceptionHandlerFactory {
+
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<String> handleInvalidDateRangeException(InvalidDateRangeException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception ex) {
