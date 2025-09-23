@@ -26,7 +26,7 @@ public class ReportService {
         LocalDateTime endDateTime = endDate != null ? endDate.atTime(23, 59, 59) : null;
         
         return employeeRepository.findAll()
-                .flatMap(employee -> 
+                .concatMap(employee -> 
                     timeRecordRepository.findEmployeeDailyHours(employee.getId(), startDateTime, endDateTime)
                         .map(dailyHours -> new DailyHours(dailyHours.getDay(), dailyHours.getProjectName(), dailyHours.getTotalHours()))
                         .collectList()
@@ -43,7 +43,7 @@ public class ReportService {
         LocalDateTime endDateTime = endDate != null ? endDate.atTime(23, 59, 59) : null;
         
         return projectRepository.findAll()
-                .flatMap(project -> 
+                .concatMap(project -> 
                     timeRecordRepository.findProjectDailyHours(project.getId(), startDateTime, endDateTime)
                         .map(dailyHours -> new ProjectDailyHours(dailyHours.getDay(), dailyHours.getTotalHours()))
                         .collectList()
