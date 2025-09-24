@@ -40,18 +40,17 @@ public class DatabaseConfiguration implements BeanPostProcessor {
             Duration executionTime = execInfo.getExecuteDuration();
             String query = extractQuery(execInfo);
             int rowCount = execInfo.getCurrentResultCount();
+
+            String sanitized = sanitizeQuery(query);
+            long durationMs = executionTime.toMillis();
             
-            // Check for errors
+            // Regular SQL timing logs only (no audit)
             if (execInfo.getThrowable() != null) {
                 log.error("SQL failed after {} ms | Query: {} | Error: {}", 
-                    executionTime.toMillis(),
-                    sanitizeQuery(query),
-                    execInfo.getThrowable().getMessage());
+                    durationMs, sanitized, execInfo.getThrowable().getMessage());
             } else {
                 log.info("SQL executed in {} ms | Rows: {} | Query: {}", 
-                    executionTime.toMillis(), 
-                    rowCount,
-                    sanitizeQuery(query));
+                    durationMs, rowCount, sanitized);
             }
         }
 

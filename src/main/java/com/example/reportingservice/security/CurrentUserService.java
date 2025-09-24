@@ -22,8 +22,7 @@ public class CurrentUserService {
     public Mono<String> getCurrentUsername() {
         return ReactiveSecurityContextHolder.getContext()
                 .map(SecurityContext::getAuthentication)
-                .map(Authentication::getName)
-                .doOnNext(username -> log.debug("Current authenticated user: {}", username));
+                .map(Authentication::getName);
     }
 
     public Mono<Long> getCurrentEmployeeId() {

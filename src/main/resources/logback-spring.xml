@@ -2,12 +2,30 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     
-    <!-- Single console appender with traceId for demo -->
+    <!-- Standard console appender with traceId for demo -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+    
+    <!-- JSON console appender for audit logs -->
+    <appender name="AUDIT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <logLevel/>
+                <loggerName/>
+                <message/>
+                <arguments/>
+            </providers>
+        </encoder>
+    </appender>
+    
+    <!-- AUDIT logger routes to JSON console -->
+    <logger name="AUDIT" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT_CONSOLE"/>
+    </logger>
     
     <!-- Application-specific logging levels -->
     <logger name="com.example.reportingservice" level="DEBUG"/>

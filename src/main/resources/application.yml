@@ -25,9 +25,3 @@ logging:
     root: INFO
     org.springframework: INFO
     com.example.reportingservice: DEBUG
-
-# Tracing Configuration - generates traceId for logging correlation
-management:
-  tracing:
-    sampling:
-      probability: 1.0  # Generate traceId for all requests
