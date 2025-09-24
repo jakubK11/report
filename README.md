@@ -71,6 +71,27 @@ $ chmod +x dev-start.sh dev-stop.sh
 - **Username**: postgres
 - **Password**: postgres
 
+## Security and Authentication
+
+- Basic authentication is enabled for the API.
+- Public endpoint: `GET /actuator/health`
+- Authentication required: all paths under `/api/**`
+- Demo users defined in `src/main/java/com/example/reportingservice/config/SecurityConfig.java`:
+  - admin / admin123 — role: `ADMIN`
+  - user / user123 — role: `USER`
+
+Example curl usage with Basic Auth:
+```bash
+# Health check (no auth required)
+curl http://localhost:8080/actuator/health
+
+# Employees report (auth required)
+curl -u user:user123 "http://localhost:8080/api/v1/report/employees"
+
+# Projects report (auth required)
+curl -u user:user123 "http://localhost:8080/api/v1/report/projects"
+```
+
 ## API Endpoints
 
 ### Employee Reports
@@ -84,14 +105,12 @@ $ chmod +x dev-start.sh dev-stop.sh
 
 **Examples:**
 ```bash
-# Stream first 20 employees with all their work hours (NDJSON format)
-$ curl "http://localhost:8080/api/v1/report/employees"
+
+ $ curl -u user:user123 "http://localhost:8080/api/v1/report/employees"
 
 # Stream employees with date filtering
-$ curl "http://localhost:8080/api/v1/report/employees?startDate=2024-02-01&endDate=2024-02-02"
+ $ curl -u user:user123 "http://localhost:8080/api/v1/report/employees?startDate=2024-02-01&endDate=2024-02-02"
 
-# Stream second page with 10 employees per page
-$ curl "http://localhost:8080/api/v1/report/employees?page=1&size=10"
 ```
 
 **Response Format:** Newline-Delimited JSON (NDJSON) - each employee record on a separate line:
@@ -111,11 +130,10 @@ $ curl "http://localhost:8080/api/v1/report/employees?page=1&size=10"
 
 **Examples:**
 ```bash
-# Stream first 20 projects with daily totals (NDJSON format)
-$ curl "http://localhost:8080/api/v1/report/projects"
+ $ curl -u user:user123 "http://localhost:8080/api/v1/report/projects"
 
 # Stream projects for specific date range
-$ curl "http://localhost:8080/api/v1/report/projects?startDate=2024-02-01&endDate=2024-02-02"
+ $ curl -u user:user123 "http://localhost:8080/api/v1/report/projects?startDate=2024-02-01&endDate=2024-02-02"
 ```
 
 **Response Format:** Newline-Delimited JSON (NDJSON) - each project record on a separate line:
