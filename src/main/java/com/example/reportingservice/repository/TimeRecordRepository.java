@@ -16,7 +16,7 @@ public interface TimeRecordRepository extends R2dbcRepository<TimeRecord, Long> 
                SUM(EXTRACT(EPOCH FROM (tr.time_to - tr.time_from)) / 3600) as total_hours
         FROM time_record tr
         JOIN project p ON tr.project_id = p.id
-        WHERE tr.employee_id = :employeeId
+        WHERE (:employeeId IS NULL OR tr.employee_id = :employeeId)
           AND (:startDate IS NULL OR tr.time_from >= :startDate)
           AND (:endDate IS NULL OR tr.time_to <= :endDate)
         GROUP BY DATE(tr.time_from), p.name
@@ -29,10 +29,11 @@ public interface TimeRecordRepository extends R2dbcRepository<TimeRecord, Long> 
                SUM(EXTRACT(EPOCH FROM (tr.time_to - tr.time_from)) / 3600) as total_hours
         FROM time_record tr
         WHERE tr.project_id = :projectId
+          AND (:employeeId IS NULL OR tr.employee_id = :employeeId)
           AND (:startDate IS NULL OR tr.time_from >= :startDate)
           AND (:endDate IS NULL OR tr.time_to <= :endDate)
         GROUP BY DATE(tr.time_from)
         ORDER BY DATE(tr.time_from)
         """)
-    Flux<ProjectDailyHoursData> findProjectDailyHours(Long projectId, LocalDateTime startDate, LocalDateTime endDate);
+    Flux<ProjectDailyHoursData> findProjectDailyHours(Long projectId, Long employeeId, LocalDateTime startDate, LocalDateTime endDate);
 }

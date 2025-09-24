@@ -50,11 +50,12 @@ class ReportControllerIT {
     private WebTestClient webTestClient;
 
     @Test
-    void shouldStreamEmployeesReportWithNDJSON() {
-        // When: Call the employees report endpoint
+    void shouldStreamEmployeesReportWithNDJSON_AsAdmin() {
+        // When: Call the employees report endpoint as admin
         Flux<EmployeeReport> result = webTestClient
                 .get()
                 .uri("/api/v1/report/employees")
+                .headers(h -> h.setBasicAuth("admin", "admin123"))
                 .accept(MediaType.APPLICATION_NDJSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -89,11 +90,12 @@ class ReportControllerIT {
     }
 
     @Test
-    void shouldStreamEmployeesReportWithDateFilter() {
-        // When: Call the employees report endpoint with date filter
+    void shouldStreamEmployeesReportWithDateFilter_AsAdmin() {
+        // When: Call the employees report endpoint with date filter as admin
         Flux<EmployeeReport> result = webTestClient
                 .get()
                 .uri("/api/v1/report/employees?startDate=2024-02-01&endDate=2024-02-01")
+                .headers(h -> h.setBasicAuth("admin", "admin123"))
                 .accept(MediaType.APPLICATION_NDJSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -123,11 +125,12 @@ class ReportControllerIT {
     }
 
     @Test
-    void shouldStreamProjectsReportWithNDJSON() {
-        // When: Call the projects report endpoint
+    void shouldStreamProjectsReportWithNDJSON_AsAdmin() {
+        // When: Call the projects report endpoint as admin
         Flux<ProjectReport> result = webTestClient
                 .get()
                 .uri("/api/v1/report/projects")
+                .headers(h -> h.setBasicAuth("admin", "admin123"))
                 .accept(MediaType.APPLICATION_NDJSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -161,11 +164,12 @@ class ReportControllerIT {
     }
 
     @Test
-    void shouldStreamProjectsReportWithDateFilter() {
-        // When: Call the projects report endpoint with date filter
+    void shouldStreamProjectsReportWithDateFilter_AsAdmin() {
+        // When: Call the projects report endpoint with date filter as admin
         Flux<ProjectReport> result = webTestClient
                 .get()
                 .uri("/api/v1/report/projects?startDate=2024-02-02&endDate=2024-02-02")
+                .headers(h -> h.setBasicAuth("admin", "admin123"))
                 .accept(MediaType.APPLICATION_NDJSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -174,36 +178,63 @@ class ReportControllerIT {
                 .getResponseBody();
 
         // Then: Verify only records from 2024-02-02 are included
+        // Only Sample Project A should be returned since it has data on 2024-02-02
+        // Sample Project B is filtered out because it has no data for that date
         StepVerifier.create(result)
                 .assertNext(projectReport -> {
-                    if ("Sample Project A".equals(projectReport.getName())) {
-                        // Sample Project A should have records on 2024-02-02 (Tom's second record)
-                        assertThat(projectReport.getHoursSpent()).hasSize(1);
-                        assertThat(projectReport.getHoursSpent().get(0).getDay().toString()).isEqualTo("2024-02-02");
-                    } else if ("Sample Project B".equals(projectReport.getName())) {
-                        // Sample Project B should have no records for 2024-02-02
-                        assertThat(projectReport.getHoursSpent()).isEmpty();
-                    }
-                })
-                .assertNext(projectReport -> {
-                    // Second project (the other one)
-                    if ("Sample Project A".equals(projectReport.getName())) {
-                        assertThat(projectReport.getHoursSpent()).hasSize(1);
-                        assertThat(projectReport.getHoursSpent().get(0).getDay().toString()).isEqualTo("2024-02-02");
-                    } else if ("Sample Project B".equals(projectReport.getName())) {
-                        assertThat(projectReport.getHoursSpent()).isEmpty();
-                    }
+                    // Only Sample Project A should have records on 2024-02-02 (Tom's second record)
+                    assertThat(projectReport.getName()).isEqualTo("Sample Project A");
+                    assertThat(projectReport.getHoursSpent()).hasSize(1);
+                    assertThat(projectReport.getHoursSpent().get(0).getDay().toString()).isEqualTo("2024-02-02");
                 })
                 .expectComplete()
                 .verify(Duration.ofSeconds(10));
     }
 
     @Test
+    void shouldStreamEmployeesReportAsUser_OnlyOwnData() {
+        // When: Call the employees report endpoint as regular user
+        Flux<EmployeeReport> result = webTestClient
+                .get()
+                .uri("/api/v1/report/employees")
+                .headers(h -> h.setBasicAuth("user", "user123"))
+                .accept(MediaType.APPLICATION_NDJSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_NDJSON)
+                .returnResult(EmployeeReport.class)
+                .getResponseBody();
+
+        // Then: Should only see data for employee ID 101 (mapped to "user")
+        StepVerifier.create(result)
+                .assertNext(employeeReport -> {
+                    // User should only see Tom's data (employee ID 101)
+                    assertThat(employeeReport.getName()).isEqualTo("Tom");
+                    assertThat(employeeReport.getHoursSpent()).isNotEmpty();
+                })
+                .expectComplete() // Only one employee report
+                .verify(Duration.ofSeconds(10));
+    }
+
+    @Test
+    void shouldReturn401ForUnauthenticatedRequest() {
+        // When: Call without authentication
+        webTestClient
+                .get()
+                .uri("/api/v1/report/employees")
+                .accept(MediaType.APPLICATION_NDJSON)
+                .exchange()
+                // Then: Expect 401 Unauthorized
+                .expectStatus().isUnauthorized();
+    }
+
+    @Test
     void shouldHandleEmptyResultsGracefully() {
-        // When: Call with date range that has no data
+        // When: Call with date range that has no data as admin
         Flux<EmployeeReport> result = webTestClient
                 .get()
                 .uri("/api/v1/report/employees?startDate=2025-01-01&endDate=2025-01-31")
+                .headers(h -> h.setBasicAuth("admin", "admin123"))
                 .accept(MediaType.APPLICATION_NDJSON)
                 .exchange()
                 .expectStatus().isOk()
@@ -224,7 +255,7 @@ class ReportControllerIT {
         LocalDate startDate = LocalDate.of(2024, 2, 2);
         LocalDate endDate = LocalDate.of(2024, 2, 1);
 
-        // When: Call the endpoint with the invalid range
+        // When: Call the endpoint with the invalid range as admin
         webTestClient
                 .get()
                 .uri(uriBuilder -> uriBuilder
@@ -232,6 +263,7 @@ class ReportControllerIT {
                         .queryParam("startDate", startDate)
                         .queryParam("endDate", endDate)
                         .build())
+                .headers(h -> h.setBasicAuth("admin", "admin123"))
                 .accept(MediaType.APPLICATION_NDJSON)
                 .exchange()
                 // Then: Expect a 400 Bad Request response

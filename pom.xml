@@ -29,6 +29,12 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
         
+        <!-- Spring Security for role-based access control -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        
         <!-- R2DBC (Reactive Database) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
